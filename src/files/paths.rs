@@ -52,6 +52,7 @@ impl FolderPath for PathBuf {
             .children()
             .iter()
             .enumerate()
+            .rev()
             .fold(-1, |file, (i, name)| if name.to_lowercase().starts_with(&term.to_lowercase()) {i as i16} else {file})
     }
 }

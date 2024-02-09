@@ -28,7 +28,7 @@ impl App {
     pub fn new() -> Self {
         App {
             should_quit: false,
-            path: PathBuf::from("/home/frolle"),
+            path: PathBuf::from("/"),
             cursor: HashMap::new(),
             input_state: "".into(),
             state: widgets::ListState::default(), 
@@ -47,6 +47,7 @@ impl App {
     pub fn selected(&self) -> PathBuf {
         self.path.child(self.cursor.get_cursor(&self.path))
     }
+
     /// Moves up one folder in the hierarchy
     pub fn move_up(&mut self) {
         self.path = self.path.parent_folder();
@@ -62,12 +63,11 @@ impl App {
 
     /// Handles the position of the cursor
     pub fn cursor_up(&mut self) {
-        self.cursor.move_cursor(&self.path, self.cursor.get_cursor(&self.path) + 1);
+        self.cursor.move_cursor(&self.path, 1);
     }
 
     pub fn cursor_down(&mut self) {
-        let new_position = self.cursor.get_cursor(&self.path) + self.path.children().len() - 1;
-        self.cursor.move_cursor(&self.path, new_position);
+        self.cursor.move_cursor(&self.path, -1);
     }
 
     pub fn update_input(&mut self, chr: char) {
@@ -77,7 +77,7 @@ impl App {
         if index == -1 {
             self.input_state.handle(InputRequest::DeleteLine);
         } else {
-            self.cursor.move_cursor(&self.path, index as usize);
+            self.cursor.move_cursor_to(&self.path, index as usize);
         }
     }
 
