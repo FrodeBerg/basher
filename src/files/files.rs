@@ -44,7 +44,7 @@ impl Folder {
         let path = self.path_name() + name;
         File::Folder(Folder {
             children: children(PathBuf::from(&(path))),
-            name: name.to_string(),
+            name: name.to_string() + "/",
             cursor: 0,
             parent: None,
         })
