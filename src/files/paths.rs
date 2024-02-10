@@ -11,7 +11,7 @@ pub trait FolderPath {
 
     fn selected_name(&self) -> String;
 
-    fn search(&self, term: String) -> i16;
+    fn search(&self, term: String) -> Option<usize>;
 }
 
 impl FolderPath for PathBuf {
@@ -47,12 +47,10 @@ impl FolderPath for PathBuf {
         self.file_name().unwrap().to_str().unwrap().to_string()
     }
 
-    fn search(&self, term: String) -> i16 {
+    fn search(&self, term: String) -> Option<usize> {
         self
             .children()
             .iter()
-            .enumerate()
-            .rev()
-            .fold(-1, |file, (i, name)| if name.to_lowercase().starts_with(&term.to_lowercase()) {i as i16} else {file})
+            .position(|name| name.to_lowercase().starts_with(&term.to_lowercase()))
     }
 }

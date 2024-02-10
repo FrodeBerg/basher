@@ -16,6 +16,7 @@ pub mod update;
 pub mod files {
     pub mod paths;
     pub mod cursor;
+    pub mod files;
 }
 
 use app::App;

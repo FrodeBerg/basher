@@ -53,6 +53,17 @@ fn children(path: PathBuf) -> Vec<String> {
     folder_names
 }
 
+impl Clone for Folder {
+    fn clone(&self) -> Self {
+        Folder {
+            children: self.children.clone(), // Clone children Vec
+            cursor: self.cursor,
+            name: self.name.clone(), // Clone name String
+            parent: self.parent.clone(), // Clone parent Option<Box<Folder>>
+        }
+    }
+}
+
 impl File {
     pub fn path_name(&self) -> String {
         match self {
@@ -61,6 +72,12 @@ impl File {
             },
         }
     } 
+
+    pub fn name(&self) -> String {
+        match self {
+            File::Folder(folder) => folder.name.clone(),
+        }
+    }
 }
 
 

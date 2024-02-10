@@ -18,12 +18,11 @@ pub fn update(app: &mut App, key_event: KeyEvent) {
     }
     match key_event.code {
         KeyCode::Esc => app.quit(),
-
         KeyCode::Left  => app.move_up(),
         KeyCode::Right => app.move_down(),
-        KeyCode::Down  => app.cursor_up(),
-        KeyCode::Up    => app.cursor_down(),
-        KeyCode::Char(chr) => {app.update_input(chr)},
+        KeyCode::Up  => app.cursor_up(),
+        KeyCode::Down    => app.cursor_down(),
+        //KeyCode::Char(chr) => {app.update_input(chr)},
         _ => {}
     };
 }
