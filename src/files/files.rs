@@ -3,6 +3,23 @@ use std::path::PathBuf;
 pub enum File {
     Folder(Folder),
 }
+
+impl File {
+    pub fn path_name(&self) -> String {
+        match self {
+            File::Folder(folder) => {  
+                folder.path_name()
+            },
+        }
+    } 
+
+    pub fn name(&self) -> String {
+        match self {
+            File::Folder(folder) => folder.name.clone(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Folder {
     pub children: Vec<String>,
@@ -52,6 +69,17 @@ impl Folder {
     }
 }
 
+impl Clone for Folder {
+    fn clone(&self) -> Self {
+        Folder {
+            children: self.children.clone(), 
+            cursor: self.cursor,
+            name: self.name.clone(), 
+            parent: self.parent.clone(), 
+        }
+    }
+}
+
 fn children(path: PathBuf) -> Vec<String> {
     let mut folder_names: Vec<String> = match path.read_dir() {
         Ok(entries) => entries
@@ -63,33 +91,5 @@ fn children(path: PathBuf) -> Vec<String> {
     folder_names.sort();
     folder_names
 }
-
-impl Clone for Folder {
-    fn clone(&self) -> Self {
-        Folder {
-            children: self.children.clone(), // Clone children Vec
-            cursor: self.cursor,
-            name: self.name.clone(), // Clone name String
-            parent: self.parent.clone(), // Clone parent Option<Box<Folder>>
-        }
-    }
-}
-
-impl File {
-    pub fn path_name(&self) -> String {
-        match self {
-            File::Folder(folder) => {  
-                folder.path_name()
-            },
-        }
-    } 
-
-    pub fn name(&self) -> String {
-        match self {
-            File::Folder(folder) => folder.name.clone(),
-        }
-    }
-}
-
 
 
