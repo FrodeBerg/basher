@@ -22,7 +22,7 @@ pub fn update(app: &mut App, key_event: KeyEvent) {
         KeyCode::Right => app.move_down(),
         KeyCode::Up  => app.cursor_up(),
         KeyCode::Down    => app.cursor_down(),
-        //KeyCode::Char(chr) => {app.update_input(chr)},
+        KeyCode::Char(chr) => {app.update_input(chr)},
         _ => {}
     };
 }

@@ -6,7 +6,6 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use crate::files::files::{File, Folder};
-use crate::files::cursor::Cursor;
 
 /// Application.
 #[derive(Debug)]
@@ -68,17 +67,14 @@ impl App {
     pub fn cursor_down(&mut self) {
         self.move_cursor(1);
     }
-
-    /*
+    
     pub fn update_input(&mut self, chr: char) {
         let req = InputRequest::InsertChar(chr); 
         self.input_state.handle(req);
-        match self.path.search(self.get_input()) {
-            Some(i) =>  self.cursor.move_cursor_to(&self.path, i),
-            _ => {self.input_state.handle(InputRequest::DeleteLine);},
-        };
+        if !self.folder.search(self.get_input()) {
+            self.input_state.handle(InputRequest::DeleteLine);
+        }
     }
-     */
  
     pub fn get_input(&self) -> String {
         self.input_state.to_string()

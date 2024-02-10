@@ -5,7 +5,6 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::files::paths::FolderPath;
 
 pub fn render(app: &mut App, f: &mut Frame) {
 

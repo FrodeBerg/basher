@@ -33,6 +33,17 @@ impl Folder {
         })
     }
 
+    pub fn search(&mut self, term: String) -> bool {
+        let position = self
+        .children
+        .iter()
+        .position(|name| name.to_lowercase().starts_with(&term.to_lowercase()));
+        match position {
+            Some(x) => {self.cursor = x; true},
+            None => false,
+        }
+    }
+
     pub fn path_name(&self) -> String{
         match &self.parent {
             None => self.name.clone(),
