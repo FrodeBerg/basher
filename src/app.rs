@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process::Command;
 
-use crate::files::files::{File, Folder};
+use crate::files::{files::File, folder::Folder};
 
 /// Application.
 #[derive(Debug)]
@@ -51,6 +51,7 @@ impl App {
                 folder.parent = Some(self.folder.clone());
                 self.folder = Box::new(folder);
             },
+            File::TextFile(file) => (),
         }
     }
 

@@ -15,6 +15,8 @@ pub mod update;
 
 pub mod files {
     pub mod files;
+    pub mod folder;
+    pub mod text_file;
 }
 
 use app::App;
