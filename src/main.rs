@@ -14,8 +14,8 @@ pub mod tui;
 pub mod update;
 
 pub mod files {
-    pub mod paths;
-    pub mod cursor;
+    pub mod file;
+    pub mod file_manager;
 }
 
 use app::App;

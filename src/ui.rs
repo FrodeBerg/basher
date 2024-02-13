@@ -5,7 +5,7 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::files::paths::FolderPath;
+use crate::files::file::{Folder, FolderPath};
 
 pub fn render(app: &mut App, f: &mut Frame) {
 
@@ -18,9 +18,9 @@ pub fn render(app: &mut App, f: &mut Frame) {
         ],
     ).split(f.size());
 
-    let path_name = Span::raw(app.path.path_name());
+    let path_name = Span::raw(app.file_manager.folder.path_name());
     let selected_name = Span::styled(
-        app.selected().selected_name(),
+        app.file_manager.selected().name(),
         Style::new()
             .fg(Color::Green),
     );
@@ -39,26 +39,26 @@ pub fn render(app: &mut App, f: &mut Frame) {
         ],
     ).split(main_layout[1]);
 
-    let parent_folders = if app.path.path_name() == "/" 
-        {Vec::new()} 
-    else
-        {app.path.parent_folder().children()};
-     
+    let parent_folders = match app.file_manager.folder.parent_folder() {
+        Some(p) => p.children().iter().map(|path| path.name()).collect(),
+        None => Vec::new(),
+    };
+
     f.render_stateful_widget(
         List::new(parent_folders)
             .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
             .repeat_highlight_symbol(true),
         folder_layout[0],
-        app.get_state(app.path.parent_folder()),
+        app.get_state(app.file_manager.folder.parent_folder().map(|p| p.path)),
     );
 
-    let folders = app.path.children();
+    let folders: Vec<String> = app.file_manager.folder.children().iter().map(|path| path.name()).collect();
     f.render_stateful_widget(
         List::new(folders)
             .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
             .repeat_highlight_symbol(true),
         folder_layout[1],
-        app.get_state(app.path.clone()),
+        app.get_state(Some(app.file_manager.folder.path.clone())),
     );
 
     let input_text = Span::raw(app.get_input());
