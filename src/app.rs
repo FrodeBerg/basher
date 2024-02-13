@@ -1,7 +1,9 @@
+use crossterm::cursor;
 use ratatui::widgets;
 use tui_input::{Input, InputRequest};
 
 use std::collections::HashMap;
+use std::io::Cursor;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -30,19 +32,14 @@ impl App {
             state: widgets::ListState::default(), 
         }
     }
-    
+
     /// Handles the tick event of the terminal.
     pub fn tick(&self) {}
 
     pub fn get_state(&mut self, path: Option<PathBuf>) -> &mut widgets::ListState {
-        let mut cursor = match path {
-            Some(path) => self.file_manager.cursor.get(&path).copied(),
-            None => Some(0),
-        };
-        if let None = cursor {
-            cursor = Some(0);
-        }
-        self.state.select(cursor);
+        let cursor = path.and_then(|p| self.file_manager.cursor.get(&p).copied());
+        let cursor = cursor.unwrap_or(0);
+        self.state.select(Some(cursor));
         &mut self.state
     }
 
