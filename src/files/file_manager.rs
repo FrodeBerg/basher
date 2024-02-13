@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::env;
-use crate::files::file::{Folder, FolderPath};
+use crate::files::file::{Folder, FilePath};
 
 use super::file::Type;
 
@@ -15,8 +15,17 @@ pub struct FileManager {
 impl FileManager {
     pub fn working_dir() -> Self {
         let dir = env::current_dir().unwrap();
+        let mut current = Folder::from_path(&dir);
+        let mut cursor = HashMap::new();
+
+        while let Some(parent) = current.parent_folder() {
+                let position = parent.search(current.name()).unwrap();
+                cursor.insert(parent.path.copy(), position);
+                current = parent;
+        }
+
         FileManager {
-            cursor: HashMap::new(),
+            cursor: cursor,
             folder: Folder{path: dir},
         }
     }

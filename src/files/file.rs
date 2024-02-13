@@ -15,6 +15,10 @@ pub struct Folder {
 
 impl Folder {
 
+    pub fn from_path(path: &PathBuf) -> Self {
+        Folder{path:path.clone()}
+    }
+
     pub fn name(&self) -> String {
         self.path.file_name().unwrap().to_str().unwrap().to_string() + &separator()
     }
@@ -54,15 +58,15 @@ struct TextFile {
     path: PathBuf,
 }
 
-pub trait FolderPath {
+pub trait FilePath {
     fn file_type(&self) -> Type;
 
     fn name(&self) -> String;
+
+    fn copy(&self) -> Self;
 }
 
-impl FolderPath for PathBuf {
-
-
+impl FilePath for PathBuf {
     fn name(&self) -> String {
         match self.file_type() {
             Type::Folder(folder) => folder.name(),
@@ -77,5 +81,7 @@ impl FolderPath for PathBuf {
         Type::TextFile(TextFile{path:self.clone()})
     }
 
-
+    fn copy(&self) -> Self {
+        PathBuf::from(&self)
+    }
 }

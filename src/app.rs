@@ -35,10 +35,13 @@ impl App {
     pub fn tick(&self) {}
 
     pub fn get_state(&mut self, path: Option<PathBuf>) -> &mut widgets::ListState {
-        let cursor = match path {
+        let mut cursor = match path {
             Some(path) => self.file_manager.cursor.get(&path).copied(),
             None => Some(0),
         };
+        if let None = cursor {
+            cursor = Some(0);
+        }
         self.state.select(cursor);
         &mut self.state
     }
