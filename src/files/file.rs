@@ -8,7 +8,7 @@ pub enum Type {
     Folder(Folder),
     TextFile(TextFile),
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Folder {
     pub path: PathBuf,
 }

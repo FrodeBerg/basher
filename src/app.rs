@@ -30,7 +30,7 @@ impl App {
             state: widgets::ListState::default(), 
         }
     }
-    //fs::read_dir("~").unwrap()
+    
     /// Handles the tick event of the terminal.
     pub fn tick(&self) {}
 

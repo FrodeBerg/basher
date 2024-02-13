@@ -1,10 +1,11 @@
+use std::rc::Rc;
+
 use ratatui::{
-    prelude::{Alignment, Frame, Layout, Constraint, Direction, Span, Line, Text},
-    style::{Color, Style, Modifier},
-    widgets::{Block, BorderType, Borders, List, Paragraph},
+    layout, prelude::{Alignment, Constraint, Direction, Frame, Layout, Line, Span, Text, Rect}, 
+    style::{Color, Modifier, Style}, widgets::{Block, BorderType, Borders, List, Paragraph}
 };
 
-use crate::app::App;
+use crate::{app::App, files::file_manager::FileManager};
 use crate::files::file::{Folder, FilePath};
 
 pub fn render(app: &mut App, f: &mut Frame) {
@@ -39,27 +40,9 @@ pub fn render(app: &mut App, f: &mut Frame) {
         ],
     ).split(main_layout[1]);
 
-    let parent_folders = match app.file_manager.folder.parent_folder() {
-        Some(p) => p.children().iter().map(|path| path.name()).collect(),
-        None => Vec::new(),
-    };
+    render_folder(f, app.file_manager.folder.parent_folder(), folder_layout[0], app);
+    render_folder(f, Some(app.file_manager.folder.clone()), folder_layout[1], app);
 
-    f.render_stateful_widget(
-        List::new(parent_folders)
-            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-            .repeat_highlight_symbol(true),
-        folder_layout[0],
-        app.get_state(app.file_manager.folder.parent_folder().map(|p| p.path)),
-    );
-
-    let folders: Vec<String> = app.file_manager.folder.children().iter().map(|path| path.name()).collect();
-    f.render_stateful_widget(
-        List::new(folders)
-            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-            .repeat_highlight_symbol(true),
-        folder_layout[1],
-        app.get_state(Some(app.file_manager.folder.path.clone())),
-    );
 
     let input_text = Span::raw(app.get_input());
     let input = Line::from(vec![input_text]);
@@ -67,4 +50,19 @@ pub fn render(app: &mut App, f: &mut Frame) {
         Paragraph::new(Text::from(vec![input])),
         main_layout[2],
     )
+}
+
+fn render_folder(f: &mut Frame, folder: Option<Folder>, layout: Rect, app: &mut App) {
+    let folders = match &folder {
+        Some(f) => f.children().iter().map(|path| path.name()).collect(),
+        None => Vec::new(),
+    };
+
+    f.render_stateful_widget(
+        List::new(folders)
+            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+            .repeat_highlight_symbol(true),
+        layout,
+        app.get_state(folder.map(|f| f.path)),
+    );
 }
