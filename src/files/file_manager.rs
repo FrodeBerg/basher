@@ -30,12 +30,12 @@ impl FileManager {
         }
     }
 
-    pub fn selected(&self) -> PathBuf {
+    pub fn selected(&self) -> Option<PathBuf> {
         let pos = match self.cursor.get(&self.folder.path) {
             Some(x) => *x,
             None => 0,
         }; 
-        self.folder.children().get(pos).unwrap().clone()
+        self.folder.children().get(pos).map(|p| p.clone())
     }
 
     pub fn move_up(&mut self) {
@@ -46,10 +46,12 @@ impl FileManager {
     }
 
     pub fn open(&mut self) {
-        match self.selected().file_type() {
-            Type::Folder(folder) => self.folder = folder,
-            _ => (),
-        };
+        if let Some(file) = self.selected() {
+            match file.file_type() {
+                Type::Folder(folder) => self.folder = folder,
+                _ => (),
+            };
+        }
     }
 
     fn get_cursor(&self) -> usize {

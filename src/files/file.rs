@@ -40,11 +40,17 @@ impl Folder {
     }
 
     pub fn children(&self) -> Vec<PathBuf> {
-        self.path
-            .read_dir()
-            .unwrap()
-            .map(|path| path.unwrap().path())
-            .collect()
+        let mut files: Vec<PathBuf> = match self.path.read_dir() {
+            Ok(entries) => entries
+                .filter_map(|entry| entry.ok())
+                .map(|entry| entry.path())
+                .collect(),
+            Err(_) => Vec::new(),
+        };
+        files.sort_by(|a, b| {
+            a.name().cmp(&b.name())
+        });
+        files
     }
 
     pub fn search(&self, term: String) -> Option<usize> {

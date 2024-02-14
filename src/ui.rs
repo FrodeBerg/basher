@@ -19,16 +19,6 @@ pub fn render(app: &mut App, f: &mut Frame) {
         ],
     ).split(f.size());
 
-    let path_name = Span::raw(app.file_manager.folder.path_name());
-    let selected_name = Span::styled(
-        app.file_manager.selected().name(),
-        Style::new()
-            .fg(Color::Green),
-    );
-    
-    let full_path_name = Line::from(vec![path_name, selected_name]);
-    render_text(f, Text::from(vec![full_path_name]), main_layout[0]);
-
     let folder_layout = Layout::new(
         Direction::Horizontal,
         [
@@ -38,24 +28,40 @@ pub fn render(app: &mut App, f: &mut Frame) {
         ],
     ).split(main_layout[1]);
 
-    render_folder(f, app.file_manager.folder.parent_folder(), folder_layout[0], app);
-    render_folder(f, Some(app.file_manager.folder.clone()), folder_layout[1], app);
+    let current_folder = app.file_manager.folder.clone();
+    let selected = app.file_manager.selected();
 
-    match app.file_manager.selected().file_type() {
-        Type::Folder(folder) => {
-            render_folder(f, Some(folder), folder_layout[2], app)
+    let path_name = Span::raw(current_folder.path_name());
+    let selected_name = Span::styled(
+        match &selected {
+            Some(s) => s.name(),
+            _ => "".to_string(),
         },
-        Type::TextFile(file) => {
-            if let Some(text) = file.read() {
-                render_text(f, Text::raw(text), folder_layout[2])
+        Style::new()
+            .fg(Color::Green),
+    );
+    
+    let full_path_name = Line::from(vec![path_name, selected_name]);
+    render_text(f, Text::from(vec![full_path_name]), main_layout[0]);
 
-            }
-        },
+    render_folder(f, current_folder.parent_folder(), folder_layout[0], app);
+    render_folder(f, Some(current_folder.clone()), folder_layout[1], app);
+
+    if let Some(s) = selected {
+        match s.file_type() {
+            Type::Folder(folder) => {
+                render_folder(f, Some(folder), folder_layout[2], app)
+            },
+            Type::TextFile(file) => {
+                if let Some(text) = file.read() {
+                    render_text(f, Text::raw(text), folder_layout[2])
+                }
+            },
+        }
     }
 
-    let input_text = Span::raw(app.get_input());
-    let input = Line::from(vec![input_text]);
-    render_text(f, Text::from(vec![input]), main_layout[2])
+
+    render_text(f, Text::raw(app.get_input()), main_layout[2])
 }
 
 fn render_text(f: &mut Frame, text: Text, layout: Rect) {
