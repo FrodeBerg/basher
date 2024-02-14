@@ -27,10 +27,7 @@ pub fn render(app: &mut App, f: &mut Frame) {
     );
     
     let full_path_name = Line::from(vec![path_name, selected_name]);
-    f.render_widget(
-        Paragraph::new(Text::from(vec![full_path_name])),
-        main_layout[0],
-    );
+    render_text(f, Text::from(vec![full_path_name]), main_layout[0]);
 
     let folder_layout = Layout::new(
         Direction::Horizontal,
@@ -48,15 +45,24 @@ pub fn render(app: &mut App, f: &mut Frame) {
         Type::Folder(folder) => {
             render_folder(f, Some(folder), folder_layout[2], app)
         },
-        _ => (),
+        Type::TextFile(file) => {
+            if let Some(text) = file.read() {
+                render_text(f, Text::raw(text), folder_layout[2])
+
+            }
+        },
     }
 
     let input_text = Span::raw(app.get_input());
     let input = Line::from(vec![input_text]);
+    render_text(f, Text::from(vec![input]), main_layout[2])
+}
+
+fn render_text(f: &mut Frame, text: Text, layout: Rect) {
     f.render_widget(
-        Paragraph::new(Text::from(vec![input])),
-        main_layout[2],
-    )
+        Paragraph::new(text),
+        layout,
+    );
 }
 
 fn render_folder(f: &mut Frame, folder: Option<Folder>, layout: Rect, app: &mut App) {

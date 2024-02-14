@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::env::consts;
+use std::fs;
 
 fn separator() -> String {
     (if consts::OS == "windows" {"\\"} else {"/"}).to_string()
@@ -54,8 +55,14 @@ impl Folder {
     }
 }
 #[derive(Debug)]
-struct TextFile {
+pub struct TextFile {
     path: PathBuf,
+}
+
+impl TextFile {
+    pub fn read(&self) -> Option<String> {
+        fs::read_to_string(self.path.as_path()).ok()
+    }
 }
 
 pub trait FilePath {
