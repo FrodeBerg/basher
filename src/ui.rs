@@ -5,7 +5,7 @@ use ratatui::{
     style::{Color, Modifier, Style}, widgets::{Block, BorderType, Borders, List, Paragraph}
 };
 
-use crate::{app::App, files::file_manager::FileManager};
+use crate::{app::App, files::{file::Type, file_manager::FileManager}};
 use crate::files::file::{Folder, FilePath};
 
 pub fn render(app: &mut App, f: &mut Frame) {
@@ -35,14 +35,21 @@ pub fn render(app: &mut App, f: &mut Frame) {
     let folder_layout = Layout::new(
         Direction::Horizontal,
         [
-            Constraint::Percentage(30),
-            Constraint::Percentage(60),
+            Constraint::Percentage(25),
+            Constraint::Percentage(50),
+            Constraint::Percentage(25),
         ],
     ).split(main_layout[1]);
 
     render_folder(f, app.file_manager.folder.parent_folder(), folder_layout[0], app);
     render_folder(f, Some(app.file_manager.folder.clone()), folder_layout[1], app);
 
+    match app.file_manager.selected().file_type() {
+        Type::Folder(folder) => {
+            render_folder(f, Some(folder), folder_layout[2], app)
+        },
+        _ => (),
+    }
 
     let input_text = Span::raw(app.get_input());
     let input = Line::from(vec![input_text]);
