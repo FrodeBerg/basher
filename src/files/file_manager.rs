@@ -63,8 +63,8 @@ impl FileManager {
 
     fn move_cursor(&mut self, amount: i32) {
         let len = self.folder.children().len() as i32;
-        let new_value = self.get_cursor() as i32 + amount;
-        self.cursor.insert(self.folder.path.clone(), ((new_value + len) % len) as usize);
+        let new_value = if len != 0 {(self.get_cursor() as i32 + amount + len) % len} else {0};
+        self.cursor.insert(self.folder.path.clone(), new_value as usize);
     }
 
     pub fn move_cursor_to(&mut self, position: usize) {
