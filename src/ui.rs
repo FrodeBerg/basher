@@ -82,6 +82,6 @@ fn render_folder(f: &mut Frame, folder: Option<Folder>, layout: Rect, app: &mut 
             .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
             .repeat_highlight_symbol(true),
         layout,
-        app.get_state(folder.map(|f| f.path)),
+        &mut app.get_state(folder.map(|f| f.path)),
     );
 }

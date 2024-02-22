@@ -16,8 +16,6 @@ pub struct App {
     pub should_quit: bool,
     /// File manager
     pub file_manager: FileManager,
-    /// The state 
-    pub state: widgets::ListState,
     /// Input state
     pub input_state: Input,
 }
@@ -29,18 +27,18 @@ impl App {
             should_quit: false,
             file_manager: FileManager::working_dir(),
             input_state: "".into(),
-            state: widgets::ListState::default(), 
         }
     }
 
     /// Handles the tick event of the terminal.
     pub fn tick(&self) {}
 
-    pub fn get_state(&mut self, path: Option<PathBuf>) -> &mut widgets::ListState {
+    pub fn get_state(&mut self, path: Option<PathBuf>) -> widgets::ListState {
         let cursor = path.and_then(|p| self.file_manager.cursor.get(&p).copied());
         let cursor = cursor.unwrap_or(0);
-        self.state.select(Some(cursor));
-        &mut self.state
+        let mut state = widgets::ListState::default();
+        state.select(Some(cursor));
+        state
     }
 
     
