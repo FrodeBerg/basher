@@ -1,24 +1,24 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::env;
-use crate::files::file::{Folder, FilePath};
+use crate::files::file::{Directory, FilePath};
 
 use super::file::Type;
 
 #[derive(Debug)]
 pub struct FileManager {
     pub cursor: HashMap<PathBuf, usize>,
-    pub folder: Folder,
+    pub working_dir: Directory,
 }
 
 
 impl FileManager {
     pub fn working_dir() -> Self {
         let dir = env::current_dir().unwrap();
-        let mut current = Folder::from_path(&dir);
+        let mut current = Directory::from_path(&dir);
         let mut cursor = HashMap::new();
 
-        while let Some(parent) = current.parent_folder() {
+        while let Some(parent) = current.path.parent_dir() {
                 let position = parent.search(current.path.name()).unwrap();
                 cursor.insert(parent.path.copy(), position);
                 current = parent;
@@ -26,21 +26,21 @@ impl FileManager {
 
         FileManager {
             cursor: cursor,
-            folder: Folder{path: dir},
+            working_dir: Directory{path: dir},
         }
     }
 
     pub fn selected(&self) -> Option<PathBuf> {
-        let pos = match self.cursor.get(&self.folder.path) {
+        let pos = match self.cursor.get(&self.working_dir.path) {
             Some(x) => *x,
             None => 0,
         }; 
-        self.folder.children().get(pos).map(|p| p.clone())
+        self.working_dir.children().get(pos).map(|p| p.clone())
     }
 
     pub fn move_up(&mut self) {
-        match self.folder.parent_folder() {
-            Some(p) => self.folder = p,
+        match self.working_dir.path.parent_dir() {
+            Some(p) => self.working_dir = p,
             None => (),
         };
     }
@@ -48,23 +48,23 @@ impl FileManager {
     pub fn open(&mut self) {
         if let Some(file) = self.selected() {
             match file.file_type() {
-                Type::Folder(folder) => self.folder = folder,
+                Type::Directory(dir) => self.working_dir = dir,
                 _ => (),
             };
         }
     }
 
     fn get_cursor(&self) -> usize {
-        match self.cursor.get(&self.folder.path) {
+        match self.cursor.get(&self.working_dir.path) {
             None => 0,
             Some(x) => *x,
         }
     }
 
     fn move_cursor(&mut self, amount: i32) {
-        let len = self.folder.children().len() as i32;
+        let len = self.working_dir.children().len() as i32;
         let new_value = if len != 0 {(self.get_cursor() as i32 + amount + len) % len} else {0};
-        self.cursor.insert(self.folder.path.clone(), new_value as usize);
+        self.cursor.insert(self.working_dir.path.clone(), new_value as usize);
     }
 
     pub fn move_cursor_to(&mut self, position: usize) {

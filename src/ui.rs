@@ -6,7 +6,7 @@ use ratatui::{
 };
 
 use crate::{app::App, files::{file::Type, file_manager::FileManager}};
-use crate::files::file::{Folder, FilePath};
+use crate::files::file::{Directory, FilePath};
 
 pub fn render(app: &mut App, f: &mut Frame) {
 
@@ -28,10 +28,10 @@ pub fn render(app: &mut App, f: &mut Frame) {
         ],
     ).split(main_layout[1]);
 
-    let current_folder = app.file_manager.folder.clone();
+    let current_folder = app.file_manager.working_dir.clone();
     let selected = app.file_manager.selected();
 
-    let path_name = Span::raw(current_folder.path_name());
+    let path_name = Span::raw(current_folder.path.path_name());
     let selected_name = Span::styled(
         match &selected {
             Some(s) => s.name(),
@@ -44,13 +44,13 @@ pub fn render(app: &mut App, f: &mut Frame) {
     let full_path_name = Line::from(vec![path_name, selected_name]);
     render_text(f, Text::from(vec![full_path_name]), main_layout[0]);
 
-    render_folder(f, current_folder.parent_folder(), folder_layout[0], app);
+    render_folder(f, current_folder.path.parent_dir(), folder_layout[0], app);
     render_folder(f, Some(current_folder.clone()), folder_layout[1], app);
 
     if let Some(s) = selected {
         match s.file_type() {
-            Type::Folder(folder) => {
-                render_folder(f, Some(folder), folder_layout[2], app)
+            Type::Directory(dir) => {
+                render_folder(f, Some(dir), folder_layout[2], app)
             },
             Type::TextFile(file) => {
                 if let Some(mut text) = file.read() {
@@ -73,7 +73,7 @@ fn render_text(f: &mut Frame, text: Text, layout: Rect) {
     );
 }
 
-fn render_folder(f: &mut Frame, folder: Option<Folder>, layout: Rect, app: &mut App) {
+fn render_folder(f: &mut Frame, folder: Option<Directory>, layout: Rect, app: &mut App) {
     let folders = match &folder {
         Some(f) => f.children().iter().map(|path| path.name()).collect(),
         None => Vec::new(),

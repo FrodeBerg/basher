@@ -7,34 +7,19 @@ fn separator() -> String {
     (if consts::OS == "windows" {"\\"} else {"/"}).to_string()
 }
 pub enum Type {
-    Folder(Folder),
+    Directory(Directory),
     TextFile(TextFile),
     Other,
 }
 #[derive(Debug, Clone)]
-pub struct Folder {
+pub struct Directory {
     pub path: PathBuf,
 }
 
-impl Folder {
+impl Directory {
 
     pub fn from_path(path: &PathBuf) -> Self {
-        Folder{path:path.clone()}
-    }
-
-    pub fn path_name(&self) -> String {
-        let path = self.path.to_str().unwrap().to_string().clone();
-        match self.parent_folder() {
-            None => path,
-            _ => path + &separator(),
-        }
-    }
-
-    pub fn parent_folder(&self) -> Option<Folder> {
-        match self.path.parent() {
-            None => None,
-            Some(p) => Some(Folder{path: p.to_path_buf()}),
-        }
+        Directory{path:path.clone()}
     }
 
     pub fn children(&self) -> Vec<PathBuf> {
@@ -72,6 +57,10 @@ impl TextFile {
 pub trait FilePath {
     fn name(&self) -> String;
 
+    fn path_name(&self) -> String;
+
+    fn parent_dir(&self) -> Option<Directory>;
+
     fn file_type(&self) -> Type;
 
     fn is_text_file(&self) -> bool;
@@ -88,9 +77,24 @@ impl FilePath for PathBuf {
         name
     }
 
+    fn path_name(&self) -> String {
+        let path = self.to_str().unwrap().to_string().clone();
+        match self.parent_dir() {
+            None => path,
+            _ => path + &separator(),
+        }
+    }
+
+    fn parent_dir(&self) -> Option<Directory> {
+        match self.parent() {
+            None => None,
+            Some(p) => Some(Directory{path: p.to_path_buf()}),
+        }
+    }
+
     fn file_type(&self) -> Type {
         if self.is_dir() {
-            return Type::Folder(Folder{path:self.clone()});
+            return Type::Directory(Directory{path:self.clone()});
         }  
         if self.is_text_file() {
             return Type::TextFile(TextFile{path:self.clone()});
@@ -99,7 +103,7 @@ impl FilePath for PathBuf {
     }
 
     fn is_text_file(&self) -> bool {
-        if let Some(name) = mime_guess::from_path(self.name()).first() {
+        if let Some(name) = mime_guess::from_path(self.path_name()).first() {
             return name.type_().as_str() == "text"
         }
         false

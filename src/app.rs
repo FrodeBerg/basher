@@ -45,8 +45,8 @@ impl App {
     pub fn update_input(&mut self, chr: char) {
         let req = InputRequest::InsertChar(chr); 
         self.input_state.handle(req);
-        let index = self.file_manager.folder.search(self.get_input());
-        match self.file_manager.folder.search(self.get_input()) {
+        let index = self.file_manager.working_dir.search(self.get_input());
+        match self.file_manager.working_dir.search(self.get_input()) {
             Some(x) => self.file_manager.move_cursor_to(x),
             None => {self.input_state.handle(InputRequest::DeleteLine);},
         };
