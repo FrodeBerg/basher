@@ -19,7 +19,7 @@ impl FileManager {
         let mut cursor = HashMap::new();
 
         while let Some(parent) = current.parent_folder() {
-                let position = parent.search(current.name()).unwrap();
+                let position = parent.search(current.path.name()).unwrap();
                 cursor.insert(parent.path.copy(), position);
                 current = parent;
         }

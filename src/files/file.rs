@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::env::consts;
 use std::fs;
+use mime_guess;
 
 fn separator() -> String {
     (if consts::OS == "windows" {"\\"} else {"/"}).to_string()
@@ -8,6 +9,7 @@ fn separator() -> String {
 pub enum Type {
     Folder(Folder),
     TextFile(TextFile),
+    Other,
 }
 #[derive(Debug, Clone)]
 pub struct Folder {
@@ -18,10 +20,6 @@ impl Folder {
 
     pub fn from_path(path: &PathBuf) -> Self {
         Folder{path:path.clone()}
-    }
-
-    pub fn name(&self) -> String {
-        self.path.file_name().unwrap().to_str().unwrap().to_string() + &separator()
     }
 
     pub fn path_name(&self) -> String {
@@ -72,26 +70,39 @@ impl TextFile {
 }
 
 pub trait FilePath {
+    fn name(&self) -> String;
+
     fn file_type(&self) -> Type;
 
-    fn name(&self) -> String;
+    fn is_text_file(&self) -> bool;
 
     fn copy(&self) -> Self;
 }
 
 impl FilePath for PathBuf {
     fn name(&self) -> String {
-        match self.file_type() {
-            Type::Folder(folder) => folder.name(),
-            _ => self.file_name().unwrap().to_str().unwrap().to_string(),
+        let name = self.file_name().unwrap().to_str().unwrap().to_string();
+        if self.is_dir() {
+           return name + &separator();
         }
+        name
     }
 
     fn file_type(&self) -> Type {
         if self.is_dir() {
             return Type::Folder(Folder{path:self.clone()});
         }  
-        Type::TextFile(TextFile{path:self.clone()})
+        if self.is_text_file() {
+            return Type::TextFile(TextFile{path:self.clone()});
+        }
+        Type::Other
+    }
+
+    fn is_text_file(&self) -> bool {
+        if let Some(name) = mime_guess::from_path(self.name()).first() {
+            return name.type_().as_str() == "text"
+        }
+        false
     }
 
     fn copy(&self) -> Self {

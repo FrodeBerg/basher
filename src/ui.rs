@@ -53,10 +53,12 @@ pub fn render(app: &mut App, f: &mut Frame) {
                 render_folder(f, Some(folder), folder_layout[2], app)
             },
             Type::TextFile(file) => {
-                if let Some(text) = file.read() {
+                if let Some(mut text) = file.read() {
+                    text.truncate(1000);  
                     render_text(f, Text::raw(text), folder_layout[2])
                 }
             },
+            _ => (),
         }
     }
 
