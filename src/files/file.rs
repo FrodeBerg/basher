@@ -6,62 +6,23 @@ use mime_guess;
 fn separator() -> String {
     (if consts::OS == "windows" {"\\"} else {"/"}).to_string()
 }
-pub enum Type {
-    Directory(Directory),
-    TextFile(TextFile),
+pub enum Contents {
+    Children(Vec<PathBuf>),
+    Text(String),
     Other,
 }
-#[derive(Debug, Clone)]
-pub struct Directory {
-    pub path: PathBuf,
-}
-
-impl Directory {
-
-    pub fn from_path(path: &PathBuf) -> Self {
-        Directory{path:path.clone()}
-    }
-
-    pub fn children(&self) -> Vec<PathBuf> {
-        let mut files: Vec<PathBuf> = match self.path.read_dir() {
-            Ok(entries) => entries
-                .filter_map(|entry| entry.ok())
-                .map(|entry| entry.path())
-                .collect(),
-            Err(_) => Vec::new(),
-        };
-        files.sort_by(|a, b| {
-            a.name().cmp(&b.name())
-        });
-        files
-    }
-
-    pub fn search(&self, term: String) -> Option<usize> {
-        self
-            .children()
-            .iter()
-            .position(|name| name.name().to_lowercase().starts_with(&term.to_lowercase()))
-    }
-}
-#[derive(Debug)]
-pub struct TextFile {
-    path: PathBuf,
-}
-
-impl TextFile {
-    pub fn read(&self) -> Option<String> {
-        fs::read_to_string(self.path.as_path()).ok()
-    }
-}
-
 pub trait FilePath {
     fn name(&self) -> String;
 
     fn path_name(&self) -> String;
 
-    fn parent_dir(&self) -> Option<Directory>;
+    fn parent_dir(&self) -> Option<PathBuf>;
 
-    fn file_type(&self) -> Type;
+    fn children(&self) -> Option<Vec<PathBuf>>;
+
+    fn contents(&self) -> Contents;
+
+    fn search(&self, term: String) -> Option<usize>;
 
     fn is_text_file(&self) -> bool;
 
@@ -85,21 +46,43 @@ impl FilePath for PathBuf {
         }
     }
 
-    fn parent_dir(&self) -> Option<Directory> {
+    fn parent_dir(&self) -> Option<PathBuf> {
         match self.parent() {
             None => None,
-            Some(p) => Some(Directory{path: p.to_path_buf()}),
+            Some(p) => Some(p.to_path_buf()),
         }
     }
 
-    fn file_type(&self) -> Type {
-        if self.is_dir() {
-            return Type::Directory(Directory{path:self.clone()});
-        }  
-        if self.is_text_file() {
-            return Type::TextFile(TextFile{path:self.clone()});
+    fn children(&self) -> Option<Vec<PathBuf>> {
+        match self.read_dir() {
+            Ok(entries) => Some(entries
+                .filter_map(|entry| entry.ok())
+                .map(|entry| entry.path())
+                .collect()),
+            Err(_) => None,
         }
-        Type::Other
+    }
+
+    fn contents(&self) -> Contents {
+        if let Some(children) = self.children() {
+            return Contents::Children(children);
+        }
+        if self.is_text_file() {
+            return Contents::Text(fs::read_to_string(self.as_path()).unwrap_or("".to_string()))
+        }
+        Contents::Other
+    }
+
+    fn search(&self, term: String) -> Option<usize> {
+        match self.children() {
+            Some(children) => {
+                children
+                .iter()
+                .position(|name| name.name().to_lowercase().starts_with(&term.to_lowercase()))    
+            },
+            _ => None,
+        }
+        
     }
 
     fn is_text_file(&self) -> bool {

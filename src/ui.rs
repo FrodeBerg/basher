@@ -1,12 +1,12 @@
-use std::rc::Rc;
+use std::{env::current_exe, path::PathBuf, rc::Rc, thread::current};
 
 use ratatui::{
-    layout, prelude::{Alignment, Constraint, Direction, Frame, Layout, Line, Span, Text, Rect}, 
-    style::{Color, Modifier, Style}, widgets::{Block, BorderType, Borders, List, Paragraph}
+    layout, prelude::{Alignment, Constraint, Direction, Frame, Layout, Line, Rect, Span, Text}, 
+    style::{Color, Modifier, Style}, widgets::{self, Block, BorderType, Borders, List, Paragraph}
 };
 
-use crate::{app::App, files::{file::Type, file_manager::FileManager}};
-use crate::files::file::{Directory, FilePath};
+use crate::{app::App};
+use crate::files::file::{Contents, FilePath};
 
 pub fn render(app: &mut App, f: &mut Frame) {
 
@@ -28,10 +28,11 @@ pub fn render(app: &mut App, f: &mut Frame) {
         ],
     ).split(main_layout[1]);
 
-    let current_folder = app.file_manager.working_dir.clone();
-    let selected = app.file_manager.selected();
+    let current_folder = app.working_dir.clone();
+    let parent_folder = current_folder.parent_dir();
+    let selected = app.selected();
 
-    let path_name = Span::raw(current_folder.path.path_name());
+    let path_name = Span::raw(current_folder.path_name());
     let selected_name = Span::styled(
         match &selected {
             Some(s) => s.name(),
@@ -44,21 +45,14 @@ pub fn render(app: &mut App, f: &mut Frame) {
     let full_path_name = Line::from(vec![path_name, selected_name]);
     render_text(f, Text::from(vec![full_path_name]), main_layout[0]);
 
-    render_folder(f, current_folder.path.parent_dir(), folder_layout[0], app);
-    render_folder(f, Some(current_folder.clone()), folder_layout[1], app);
+    render_folder(f, parent_folder.clone().map_or_else(Vec::new, |p| p.children().unwrap()), folder_layout[0], app.get_state(parent_folder));
+    render_folder(f, current_folder.children().unwrap(), folder_layout[1], app.get_state(Some(current_folder)));
 
     if let Some(s) = selected {
-        match s.file_type() {
-            Type::Directory(dir) => {
-                render_folder(f, Some(dir), folder_layout[2], app)
-            },
-            Type::TextFile(file) => {
-                if let Some(mut text) = file.read() {
-                    text.truncate(1000);  
-                    render_text(f, Text::raw(text), folder_layout[2])
-                }
-            },
-            _ => (),
+        match s.contents() {
+            Contents::Children(children) => render_folder(f, children, folder_layout[2], app.get_state(Some(s))),
+            Contents::Text(text) => render_text(f, Text::raw(text), folder_layout[2]),
+            _ => ()
         }
     }
 
@@ -73,17 +67,12 @@ fn render_text(f: &mut Frame, text: Text, layout: Rect) {
     );
 }
 
-fn render_folder(f: &mut Frame, folder: Option<Directory>, layout: Rect, app: &mut App) {
-    let folders = match &folder {
-        Some(f) => f.children().iter().map(|path| path.name()).collect(),
-        None => Vec::new(),
-    };
-
+fn render_folder(f: &mut Frame, files: Vec<PathBuf>, layout: Rect, mut state: widgets::ListState) {
     f.render_stateful_widget(
-        List::new(folders)
+        List::new(files.iter().map(|f| f.name()))
             .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
             .repeat_highlight_symbol(true),
         layout,
-        &mut app.get_state(folder.map(|f| f.path)),
+        & mut state,
     );
 }
