@@ -1,4 +1,5 @@
 use std::{env::current_exe, path::PathBuf, rc::Rc, thread::current};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use ratatui::{
     layout, prelude::{Alignment, Constraint, Direction, Frame, Layout, Line, Rect, Span, Text}, 
@@ -48,9 +49,10 @@ pub fn render(app: &mut App, f: &mut Frame) {
     render_folder(f, parent_folder.clone().map_or_else(Vec::new, |p| p.children().unwrap()), folder_layout[0], app.get_state(parent_folder));
     render_folder(f, current_folder.children().unwrap(), folder_layout[1], app.get_state(Some(current_folder)));
 
+    
     if let Some(s) = selected {
-        match s.contents() {
-            Contents::Children(children) => render_folder(f, children, folder_layout[2], app.get_state(Some(s))),
+        match app.contents.clone() {
+            Contents::Children(children) => render_folder(f, children.clone(), folder_layout[2], app.get_state(Some(s))),
             Contents::Text(text) => render_text(f, Text::raw(text), folder_layout[2]),
             _ => ()
         }

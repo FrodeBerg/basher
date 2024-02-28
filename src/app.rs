@@ -2,6 +2,11 @@ use crossterm::cursor;
 use ratatui::widgets;
 use tui_input::{Input, InputRequest};
 
+use std::sync::{Arc, Mutex, MutexGuard};
+use std::thread::{self, JoinHandle};
+use std::sync::mpsc::{self, Sender, Receiver};
+
+
 use std::env;
 
 use std::collections::HashMap;
@@ -13,7 +18,6 @@ use crate::files::file::{Contents, FilePath};
 
 
 /// Application.
-#[derive(Debug)]
 pub struct App {
     /// should the application exit?
     pub should_quit: bool,
@@ -21,8 +25,13 @@ pub struct App {
     pub working_dir: PathBuf,
     /// Cursor
     pub cursor: HashMap<PathBuf, usize>,
+    // Content for third window
     /// Input state
     pub input_state: Input,
+    pub contents: Contents,
+    pub thread_pool: Vec<JoinHandle<()>>,
+    pub sender: Sender<Contents>,
+    pub receiver: Receiver<Contents>,
 }
 
 impl App {
@@ -37,17 +46,24 @@ impl App {
                 cursor.insert(parent.copy(), position);
                 current = parent;
         }
+        let (sender, receiver) = mpsc::channel();
 
         App {
             should_quit: false,
             working_dir: dir,
             cursor: cursor,
             input_state: "".into(),
+            thread_pool: Vec::new(),
+            contents: Contents::Other,
+            sender, 
+            receiver,
         }
     }
 
     /// Handles the tick event of the terminal.
-    pub fn tick(&self) {}
+    pub fn tick(&mut self) {
+        self.refresh_contents();
+    }
 
 
     pub fn selected(&self) -> Option<PathBuf> {
@@ -73,7 +89,6 @@ impl App {
         }
     }
 
-
     fn get_cursor(&self) -> usize {
         match self.cursor.get(&self.working_dir) {
             None => 0,
@@ -85,6 +100,7 @@ impl App {
         let len = self.working_dir.children().unwrap().len() as i32;
         let new_value = if len != 0 {(self.get_cursor() as i32 + amount + len) % len} else {0};
         self.cursor.insert(self.working_dir.clone(), new_value as usize);
+        self.update_contents();
     }
 
     pub fn move_cursor_to(&mut self, position: usize) {
@@ -118,6 +134,36 @@ impl App {
         };
     }
  
+    fn update_contents(&mut self) {
+        let (sender, receiver) = mpsc::channel::<Contents>();
+
+        let selected_clone = self.selected();
+        let sender_clone = sender.clone();
+
+        self.sender = sender;
+        self.receiver = receiver;
+        
+
+
+        let handle = thread::spawn(move || {
+            if let Some(s) = selected_clone {
+                sender_clone.send(s.contents()).unwrap();
+            }
+
+        });
+
+
+        self.thread_pool.push(handle);
+    }
+
+    pub fn refresh_contents(&mut self) {
+        match self.receiver.try_recv() {
+            Ok(contents) => self.contents = contents,
+            _ => (),
+        }
+    }
+
+
     pub fn get_input(&self) -> String {
         self.input_state.to_string()
     }

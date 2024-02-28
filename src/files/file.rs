@@ -6,6 +6,7 @@ use mime_guess;
 fn separator() -> String {
     (if consts::OS == "windows" {"\\"} else {"/"}).to_string()
 }
+#[derive(Clone)]
 pub enum Contents {
     Children(Vec<PathBuf>),
     Text(String),
