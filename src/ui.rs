@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::{app::App};
-use crate::files::file::{Contents, FilePath};
+use crate::navigation::file::{Contents, FilePath};
 
 pub fn render(app: &mut App, f: &mut Frame) {
 

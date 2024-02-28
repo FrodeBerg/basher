@@ -2,7 +2,6 @@ use crossterm::cursor;
 use ratatui::widgets;
 use tui_input::{Input, InputRequest};
 
-use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread::{self, JoinHandle};
 use std::sync::mpsc::{self, Sender, Receiver};
 
@@ -10,11 +9,9 @@ use std::sync::mpsc::{self, Sender, Receiver};
 use std::env;
 
 use std::collections::HashMap;
-use std::io::Cursor;
 use std::path::PathBuf;
-use std::process::Command;
 
-use crate::files::file::{Contents, FilePath};
+use crate::navigation::file::{Contents, FilePath};
 
 
 /// Application.

@@ -13,8 +13,10 @@ pub mod tui;
 /// Application updater.
 pub mod update;
 
-pub mod files {
+pub mod navigation {
     pub mod file;
+    pub mod navigation;
+    pub mod display_navigation;
 }
 
 use app::App;
