@@ -28,7 +28,7 @@ impl Preview {
         }
     }
 
-    pub fn update(&mut self, working_dir: PathBuf) {
+    pub fn update(&mut self, selected_dir: Option<PathBuf>) {
         let (tx, rx) = mpsc::channel::<Contents>();
         let tx_clone = tx.clone();
 
@@ -36,7 +36,8 @@ impl Preview {
         self.rx = rx;
         
         let handle = thread::spawn(move || {
-            tx_clone.send(working_dir.contents()).unwrap();
+            let preview = selected_dir.map_or(Contents::Other, |dir| dir.contents());
+            tx_clone.send(preview).unwrap();
         });
 
         self.thread_pool.push(handle);

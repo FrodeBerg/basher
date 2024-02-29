@@ -26,7 +26,7 @@ impl App {
 
     /// Handles the tick event of the terminal.
     pub fn tick(&mut self) {
-        self.navigation.preview.update(self.navigation.working_dir.clone());
+        self.navigation.preview.refresh();
     }
 
     
@@ -41,8 +41,7 @@ impl App {
             //KeyCode::Char(chr) => {app.navigation.update_input(chr)},
             _ => {}
         };
-        self.navigation.preview.refresh();
-
+        self.navigation.preview.update(self.navigation.selected());
     }
 
     /*
