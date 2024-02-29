@@ -7,7 +7,7 @@ use std::env;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use crate::navigation::file::{Contents, FilePath};
+use super::{preview::Preview, file::FilePath};
 
 
 /// Application.
@@ -16,6 +16,8 @@ pub struct Navigation {
     pub working_dir: PathBuf,
     /// Cursor
     pub cursor: HashMap<PathBuf, usize>,
+
+    pub preview: Preview,
 }
 
 impl Navigation {
@@ -34,6 +36,7 @@ impl Navigation {
         Navigation {
             working_dir: dir,
             cursor: cursor,
+            preview: Preview::new(),
         }
     }
 

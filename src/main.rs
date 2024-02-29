@@ -10,13 +10,10 @@ pub mod ui;
 /// Terminal user interface.
 pub mod tui;
 
-/// Application updater.
-pub mod update;
-
 pub mod navigation {
     pub mod file;
     pub mod navigation;
-    pub mod display_navigation;
+    pub mod preview;
 }
 
 use app::App;
@@ -24,7 +21,6 @@ use anyhow::Result;
 use event::{Event, EventHandler};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tui::Tui;
-use update::update;
 
 fn main() -> Result<()> {
     // Create an application.
@@ -40,11 +36,11 @@ fn main() -> Result<()> {
     // Start the main loop.
     while !app.should_quit {
         // Render the user interface.
-        tui.draw(&mut app)?;
+        tui.draw(&mut app.navigation)?;
         // Handle events.
         match tui.events.next()? {
             Event::Tick => {app.tick()}
-            Event::Key(key_event) => update(&mut app, key_event),
+            Event::Key(key_event) => app.action(key_event),
             Event::Mouse(_) => {}
             Event::Resize(_, _) => {}
         };
