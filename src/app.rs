@@ -2,7 +2,7 @@ use ratatui::widgets;
 use tui_input::{Input, InputRequest};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::navigation::navigation::Navigation;
+use crate::navigation::{self, file::Contents, navigation::Navigation};
 
 enum Action {
     LowercaseKey(char),
@@ -18,9 +18,12 @@ pub struct App {
 impl App {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
+        let mut navigation = Navigation::new();
+        navigation.preview.update(navigation.selected());
+
         App {
             should_quit: false,
-            navigation: Navigation::new(),
+            navigation,
         }
     }
 
@@ -41,6 +44,7 @@ impl App {
             //KeyCode::Char(chr) => {app.navigation.update_input(chr)},
             _ => {}
         };
+        self.navigation.preview.preview = Contents::Other;
         self.navigation.preview.update(self.navigation.selected());
     }
 

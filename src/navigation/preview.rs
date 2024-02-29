@@ -37,7 +37,14 @@ impl Preview {
         
         let handle = thread::spawn(move || {
             let preview = selected_dir.map_or(Contents::Other, |dir| dir.contents());
-            tx_clone.send(preview).unwrap();
+            match preview {
+                Contents::Text(mut text) => {
+                    text.truncate(2000);
+                    tx_clone.send(Contents::Text(text)).unwrap()
+                },
+                _ => tx_clone.send(preview).unwrap(),
+            }
+            
         });
 
         self.thread_pool.push(handle);
