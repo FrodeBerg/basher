@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::env::consts;
-use std::fs;
+use std::fs::File;
+use std::io::{self, Read};
 use mime_guess;
 
 fn separator() -> String {
@@ -69,7 +70,9 @@ impl FilePath for PathBuf {
             return Contents::Children(children);
         }
         if self.is_text_file() {
-            return Contents::Text(fs::read_to_string(self.as_path()).unwrap_or("".to_string()))
+            let mut text = [0; 1000];
+            let _ = File::open(self.as_path()).map(|mut f| f.read_exact(&mut text));
+            return Contents::Text(String::from_utf8_lossy(&text).to_string());
         }
         Contents::Other
     }
