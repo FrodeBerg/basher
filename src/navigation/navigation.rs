@@ -18,6 +18,8 @@ pub struct Navigation {
     pub cursor: HashMap<PathBuf, usize>,
 
     pub preview: Preview,
+
+    pub search_string: String,
 }
 
 impl Navigation {
@@ -37,6 +39,7 @@ impl Navigation {
             working_dir: dir,
             cursor: cursor,
             preview: Preview::new(),
+            search_string: "".to_string(),
         }
     }
 
@@ -60,6 +63,14 @@ impl Navigation {
             if file.is_dir() {
                 self.working_dir = file;
             }
+        }
+    }
+
+    pub fn update_search(&mut self, chr: char) {
+        self.search_string.push(chr);
+        match self.working_dir.search(self.search_string.clone()) {
+            Some(x) => self.move_cursor_to(x),
+            _ => self.search_string = chr.to_string(),
         }
     }
 

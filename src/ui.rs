@@ -56,7 +56,7 @@ pub fn render(navigation: &mut Navigation, f: &mut Frame) {
         _ => ()
     }
     
-    //render_text(f, Text::raw(app.get_input()), main_layout[2])
+    render_text(f, Text::raw(navigation.search_string.clone()), main_layout[2])
 }
 
 fn get_state(navigation: &Navigation, dir: Option<PathBuf>) -> ListState {

@@ -9,7 +9,6 @@ use super::navigation::Navigation;
 
 /// Application.
 pub struct Preview {
-    pub thread_pool: Vec<JoinHandle<()>>,
     pub tx: Sender<Contents>,
     pub rx: Receiver<Contents>,
     pub preview: Contents,
@@ -21,7 +20,6 @@ impl Preview {
         let (tx, rx) = mpsc::channel();
 
         Preview {
-            thread_pool: Vec::new(),
             tx, 
             rx,
             preview: Contents::Other,
@@ -29,25 +27,22 @@ impl Preview {
     }
 
     pub fn update(&mut self, selected_dir: Option<PathBuf>) {
-        let (tx, rx) = mpsc::channel::<Contents>();
+        let (tx, rx) = mpsc::channel();
         let tx_clone = tx.clone();
 
         self.tx = tx;
         self.rx = rx;
-        
-        let handle = thread::spawn(move || {
+
+        thread::spawn(move || {
             let preview = selected_dir.map_or(Contents::Other, |dir| dir.contents());
             match preview {
-                Contents::Text(mut text) => {
-                    text.truncate(2000);
-                    tx_clone.send(Contents::Text(text)).unwrap()
+                Contents::Text(text) => {
+                    tx_clone.send(Contents::Text(text)).unwrap_or(())
                 },
-                _ => tx_clone.send(preview).unwrap(),
+                _ => tx_clone.send(preview).unwrap_or(()),
             }
             
         });
-
-        self.thread_pool.push(handle);
     }
 
     pub fn refresh(&mut self) {

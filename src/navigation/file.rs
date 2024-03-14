@@ -78,11 +78,12 @@ impl FilePath for PathBuf {
     }
 
     fn search(&self, term: String) -> Option<usize> {
+        let term = term.to_lowercase();
         match self.children() {
             Some(children) => {
                 children
                 .iter()
-                .position(|name| name.name().to_lowercase().starts_with(&term.to_lowercase()))    
+                .position(|path| path.name().to_lowercase().starts_with(&term))    
             },
             _ => None,
         }
