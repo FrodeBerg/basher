@@ -3,9 +3,9 @@ use std::sync::mpsc::{self, Sender, Receiver};
 
 use std::path::PathBuf;
 
-use crate::navigation::file::{Contents, FilePath};
+use crate::file_manager::file::{Contents, FilePath};
 
-use super::navigation::Navigation;
+use super::file_manager::FileManager;
 
 /// Application.
 pub struct Preview {

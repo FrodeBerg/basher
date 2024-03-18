@@ -9,7 +9,7 @@ use crossterm::{
 pub type CrosstermTerminal =
     ratatui::Terminal<ratatui::backend::CrosstermBackend<std::io::Stderr>>;
 
-use crate::{event::EventHandler, navigation::{self, navigation::Navigation}, ui};
+use crate::{event::EventHandler, file_manager::{self, file_manager::FileManager}, ui};
 
 /// Representation of a terminal user interface.
 ///
@@ -57,7 +57,7 @@ impl Tui {
     ///
     /// [`Draw`]: tui::Terminal::draw
     /// [`rendering`]: crate::ui:render
-    pub fn draw(&mut self, navigation: &mut Navigation) -> Result<()> {
+    pub fn draw(&mut self, navigation: &mut FileManager) -> Result<()> {
         self.terminal.draw(|frame| ui::render(navigation, frame))?;
         Ok(())
     }
@@ -77,7 +77,7 @@ impl Tui {
     }
 
     /// Exits the terminal interface.
-    ///
+    ///s
     /// It disables the raw mode and reverts back the terminal properties.
     pub fn exit(&mut self) -> Result<()> {
         Self::reset()?;

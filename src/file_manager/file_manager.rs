@@ -9,9 +9,16 @@ use std::path::PathBuf;
 
 use super::{preview::Preview, file::FilePath};
 
+pub enum Mode {
+    Find,
+    Filter,
+    MoveTo,
+    MoveInto,
+    Bash,
+}
 
 /// Application.
-pub struct Navigation {
+pub struct FileManager {
     /// File manager
     pub working_dir: PathBuf,
     /// Cursor
@@ -20,9 +27,11 @@ pub struct Navigation {
     pub preview: Preview,
 
     pub search_string: String,
+
+    pub mode: Option<Mode>,
 }
 
-impl Navigation {
+impl FileManager {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
         let dir = env::current_dir().unwrap_or(PathBuf::from("/"));
@@ -30,16 +39,17 @@ impl Navigation {
         let mut cursor = HashMap::new();
 
         while let Some(parent) = current.parent_dir() {
-                let position = parent.search(current.name()).unwrap();
-                cursor.insert(parent.copy(), position);
-                current = parent;
+            let position = parent.search(current.name()).unwrap();
+            cursor.insert(parent.copy(), position);
+            current = parent;
         }
 
-        Navigation {
+        FileManager {
             working_dir: dir,
             cursor: cursor,
             preview: Preview::new(),
             search_string: "".to_string(),
+            mode: None,
         }
     }
 
@@ -70,9 +80,16 @@ impl Navigation {
         self.search_string.push(chr);
         match self.working_dir.search(self.search_string.clone()) {
             Some(x) => self.move_cursor_to(x),
-            _ => self.search_string = chr.to_string(),
+            _ => {
+                self.search_string = chr.to_string();
+                match self.working_dir.search(self.search_string.clone()) {
+                    Some(x) => self.move_cursor_to(x),
+                    _ => (),
+                }
+            },
         }
     }
+
 
     fn get_cursor(&self) -> usize {
         match self.cursor.get(&self.working_dir) {

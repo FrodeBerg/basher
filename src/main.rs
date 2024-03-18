@@ -10,9 +10,9 @@ pub mod ui;
 /// Terminal user interface.
 pub mod tui;
 
-pub mod navigation {
+pub mod file_manager {
     pub mod file;
-    pub mod navigation;
+    pub mod file_manager;
     pub mod preview;
 }
 
@@ -36,7 +36,7 @@ fn main() -> Result<()> {
     // Start the main loop.
     while !app.should_quit {
         // Render the user interface.
-        tui.draw(&mut app.navigation)?;
+        tui.draw(&mut app.file_manager)?;
         // Handle events.
         match tui.events.next()? {
             Event::Tick => {app.tick()}

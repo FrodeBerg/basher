@@ -1,3 +1,4 @@
+use std::fs::File;
 use std::io::Cursor;
 use std::{env::current_exe, path::PathBuf, rc::Rc, thread::current};
 use std::sync::{Arc, Mutex, MutexGuard};
@@ -9,11 +10,10 @@ use ratatui::{
     style::{Color, Modifier, Style}, widgets::{self, Block, BorderType, Borders, List, Paragraph}
 };
 
-use crate::navigation;
-use crate::navigation::file::{Contents, FilePath};
-use crate::navigation::navigation::Navigation;
+use crate::file_manager::file::{Contents, FilePath};
+use crate::file_manager::file_manager::FileManager;
 
-pub fn render(navigation: &mut Navigation, f: &mut Frame) {
+pub fn render(file_manager: &mut FileManager, f: &mut Frame) {
 
     let main_layout = Layout::new(
         Direction::Vertical,
@@ -33,12 +33,12 @@ pub fn render(navigation: &mut Navigation, f: &mut Frame) {
         ],
     ).split(main_layout[1]);
 
-    let working_dir = navigation.working_dir.clone();
+    let working_dir = file_manager.working_dir.clone();
     let parent_dir = working_dir.parent_dir();
 
     let path_name = Span::raw(working_dir.path_name());
     let selected_name = Span::styled(
-        navigation.selected().map_or("".to_string(), |p| p.name().clone()),
+        file_manager.selected().map_or("".to_string(), |p| p.name().clone()),
         Style::new().fg(Color::Green),
     );
     
@@ -46,22 +46,22 @@ pub fn render(navigation: &mut Navigation, f: &mut Frame) {
     render_text(f, Text::from(vec![full_path_name]), main_layout[0]);
 
     
-    render_folder(f, parent_dir.clone().map_or_else(Vec::new, |p| p.children().unwrap()), folder_layout[0], get_state(&navigation, parent_dir));
-    render_folder(f, working_dir.children().unwrap(), folder_layout[1], get_state(&navigation, Some(working_dir)));
+    render_folder(f, parent_dir.clone().map_or_else(Vec::new, |p| p.children().unwrap()), folder_layout[0], get_state(&file_manager, parent_dir));
+    render_folder(f, working_dir.children().unwrap(), folder_layout[1], get_state(&file_manager, Some(working_dir)));
 
     
-    match &navigation.preview.preview {
-        Contents::Children(children) => render_folder(f, children.clone(), folder_layout[2], get_state(&navigation, navigation.selected())),
+    match &file_manager.preview.preview {
+        Contents::Children(children) => render_folder(f, children.clone(), folder_layout[2], get_state(&file_manager, file_manager.selected())),
         Contents::Text(text) => render_text(f, Text::raw(text), folder_layout[2]),
         _ => ()
     }
     
-    render_text(f, Text::raw(navigation.search_string.clone()), main_layout[2])
+    render_text(f, Text::raw(file_manager.search_string.clone()), main_layout[2])
 }
 
-fn get_state(navigation: &Navigation, dir: Option<PathBuf>) -> ListState {
+fn get_state(file_manager: &FileManager, dir: Option<PathBuf>) -> ListState {
 
-    let cursor = dir.map_or(0, |d| navigation.cursor.get(&d).copied().unwrap_or(0));
+    let cursor = dir.map_or(0, |d| file_manager.cursor.get(&d).copied().unwrap_or(0));
 
     let mut state = widgets::ListState::default();
     state.select(Some(cursor));
