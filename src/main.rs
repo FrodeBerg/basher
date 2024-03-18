@@ -13,7 +13,7 @@ pub mod tui;
 pub mod file_manager {
     pub mod file;
     pub mod file_manager;
-    pub mod preview;
+    pub mod view;
 }
 
 use app::App;

@@ -6,8 +6,6 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::file_manager::{self, file::{Contents, FilePath}, file_manager::FileManager};
 
-
-
 /// Application.
 pub struct App {
     /// should the application exit?
@@ -20,7 +18,7 @@ impl App {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
         let mut file_manager = FileManager::new();
-        file_manager.preview.update(file_manager.selected());
+        file_manager.view.update(file_manager.selected());
 
         App {
             should_quit: false,
@@ -30,7 +28,7 @@ impl App {
 
     /// Handles the tick event of the terminal.
     pub fn tick(&mut self) {
-        self.file_manager.preview.refresh();
+        self.file_manager.view.refresh();
     }
 
     pub fn action(&mut self, key_event: KeyEvent) {
@@ -43,8 +41,8 @@ impl App {
             KeyCode::Char(chr) if chr.is_uppercase() => {self.file_manager.update_search(chr.to_ascii_lowercase())},
             _ => {}
         };
-        self.file_manager.preview.preview = Contents::Other;
-        self.file_manager.preview.update(self.file_manager.selected());
+        self.file_manager.view.preview = Contents::Other;
+        self.file_manager.view.update(self.file_manager.selected());
     }
 
     /// Set should_quit to true to quit the application.

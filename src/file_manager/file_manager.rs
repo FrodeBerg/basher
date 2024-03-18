@@ -2,14 +2,15 @@ use crossterm::cursor;
 use ratatui::widgets;
 use tui_input::{Input, InputRequest};
 
-use std::env;
+use std::{env, path::Path};
 
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use super::{preview::Preview, file::FilePath};
+use super::{view::View, file::FilePath};
 
 pub enum Mode {
+    Normal,
     Find,
     Filter,
     MoveTo,
@@ -24,11 +25,11 @@ pub struct FileManager {
     /// Cursor
     pub cursor: HashMap<PathBuf, usize>,
 
-    pub preview: Preview,
+    pub view: View,
 
-    pub search_string: String,
+    pub query: String,
+    pub mode: Mode,
 
-    pub mode: Option<Mode>,
 }
 
 impl FileManager {
@@ -47,9 +48,9 @@ impl FileManager {
         FileManager {
             working_dir: dir,
             cursor: cursor,
-            preview: Preview::new(),
-            search_string: "".to_string(),
-            mode: None,
+            view: View::new(),
+            query: "".to_string(),
+            mode: Mode::Filter,
         }
     }
 
@@ -59,6 +60,20 @@ impl FileManager {
             None => 0,
         }; 
         self.working_dir.children().unwrap().get(pos).map(|p| p.clone())
+    }
+
+    pub fn parent_view(&self) -> Vec<PathBuf> {
+        self.working_dir.parent_dir().map_or(Vec::new(), |p| p.children().unwrap())
+    }
+
+    pub fn working_view(&self) -> Vec<PathBuf> {
+        let children = self.working_dir.children().unwrap();
+        match self.mode {
+            Mode::Filter => {
+                children.into_iter().filter(|path| path.name().to_lowercase().starts_with(&self.query)).collect()
+            }, 
+            _ => children, 
+        }
     }
 
     pub fn move_up(&mut self) {
@@ -77,19 +92,18 @@ impl FileManager {
     }
 
     pub fn update_search(&mut self, chr: char) {
-        self.search_string.push(chr);
-        match self.working_dir.search(self.search_string.clone()) {
+        self.query.push(chr);
+        match self.working_dir.search(self.query.clone()) {
             Some(x) => self.move_cursor_to(x),
             _ => {
-                self.search_string = chr.to_string();
-                match self.working_dir.search(self.search_string.clone()) {
+                self.query = chr.to_string();
+                match self.working_dir.search(self.query.clone()) {
                     Some(x) => self.move_cursor_to(x),
                     _ => (),
                 }
             },
         }
     }
-
 
     fn get_cursor(&self) -> usize {
         match self.cursor.get(&self.working_dir) {
@@ -99,7 +113,7 @@ impl FileManager {
     }
 
     fn move_cursor(&mut self, amount: i32) {
-        let len = self.working_dir.children().unwrap().len() as i32;
+        let len = self.working_view().len() as i32;
         let new_value = if len != 0 {(self.get_cursor() as i32 + amount + len) % len} else {0};
         self.cursor.insert(self.working_dir.clone(), new_value as usize);
     }

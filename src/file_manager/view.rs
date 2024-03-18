@@ -5,24 +5,27 @@ use std::path::PathBuf;
 
 use crate::file_manager::file::{Contents, FilePath};
 
-use super::file_manager::FileManager;
-
+use super::file;
 /// Application.
-pub struct Preview {
+pub struct View {
     pub tx: Sender<Contents>,
     pub rx: Receiver<Contents>,
     pub preview: Contents,
+    pub working: Vec<PathBuf>,
+    pub parent: Vec<PathBuf>,
 }
 
-impl Preview {
+impl View {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
         let (tx, rx) = mpsc::channel();
 
-        Preview {
+        View {
             tx, 
             rx,
             preview: Contents::Other,
+            working: Vec::new(),
+            parent: Vec::new(),
         }
     }
 
@@ -33,16 +36,18 @@ impl Preview {
         self.tx = tx;
         self.rx = rx;
 
+
+        let selected_dir_clone = selected_dir.clone();
         thread::spawn(move || {
-            let preview = selected_dir.map_or(Contents::Other, |dir| dir.contents());
+            let preview = selected_dir_clone.map_or(Contents::Other, |dir| dir.contents());
             match preview {
                 Contents::Text(text) => {
                     tx_clone.send(Contents::Text(text)).unwrap_or(())
                 },
                 _ => tx_clone.send(preview).unwrap_or(()),
-            }
-            
+            }    
         });
+
     }
 
     pub fn refresh(&mut self) {

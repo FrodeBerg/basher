@@ -46,17 +46,17 @@ pub fn render(file_manager: &mut FileManager, f: &mut Frame) {
     render_text(f, Text::from(vec![full_path_name]), main_layout[0]);
 
     
-    render_folder(f, parent_dir.clone().map_or_else(Vec::new, |p| p.children().unwrap()), folder_layout[0], get_state(&file_manager, parent_dir));
-    render_folder(f, working_dir.children().unwrap(), folder_layout[1], get_state(&file_manager, Some(working_dir)));
+    render_folder(f, file_manager.parent_view(), folder_layout[0], get_state(&file_manager, parent_dir));
+    render_folder(f, file_manager.working_view(), folder_layout[1], get_state(&file_manager, Some(working_dir)));
 
     
-    match &file_manager.preview.preview {
+    match &file_manager.view.preview {
         Contents::Children(children) => render_folder(f, children.clone(), folder_layout[2], get_state(&file_manager, file_manager.selected())),
         Contents::Text(text) => render_text(f, Text::raw(text), folder_layout[2]),
         _ => ()
     }
     
-    render_text(f, Text::raw(file_manager.search_string.clone()), main_layout[2])
+    render_text(f, Text::raw(file_manager.query.clone()), main_layout[2])
 }
 
 fn get_state(file_manager: &FileManager, dir: Option<PathBuf>) -> ListState {
